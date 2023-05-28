@@ -65,6 +65,7 @@ When the deployed object of interest does not have a valid / any cluster.local e
 ### TODOs
 
 - [ ] mooaaaaarr unit tests
+- [ ] more comments
 - [ ] support more K8s object types (e.g CRDs?)
 - [ ] come up with a way to safely support Namespace based policies
 - [ ] integrate logging, separate log levels with Zerolog
