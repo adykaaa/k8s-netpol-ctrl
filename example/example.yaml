@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: nginx:latest
+        env:
+        - name: FRONTEND
+          value: frontend-svc.default.svc.cluster.local
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: nginx:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  namespace: default
+spec:
+  selector:
+    app.kubernetes.io/name: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+#Example NetworkPolicy that will be deployed
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-default-netpol
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values: ["ingress-nginx","contour","traefik","haproxy"]
+        - key: k8s-app
+          operator: In
+          values: ["kube-dns"]
+        - key: app
+          operator: In
+          values: ["backend","frontend"]
+  egress:
+  - to:
+    - podSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values: ["ingress-nginx","contour","traefik","haproxy"]
+        - key: k8s-app
+          operator: In
+          values: ["kube-dns"]
+        - key: app
+          operator: In
+          values: ["backend","frontend"]
+          
